@@ -6,21 +6,53 @@
 import csv
 import json
 import os.path
+import sys
+import locale
 import random
 
-statsFile = 'stats.txt'
-inputFile = 'dataset.csv'
+locale.setlocale(locale.LC_ALL,'de_DE') # 'en_US.UTF-8')
+statsFile    = 'stats.txt'
+inputFile    = 'dataset.csv'
+datatypeFile = 'datatype.csv'
 
 def splitDataByClass(inputFile):
-	listOfClass = []
-	numOfClass  = []
+	listOfClass=[]; numOfClass=[]; typeOfClass=[]
+	maxVal=[]; minVal=[]
 	outputFile  = []
+	with open(datatypeFile,'rb') as dt:
+		reader=csv.reader(dt,delimiter=';')
+		typeOfClass=reader.next()
+		print typeOfClass
+	dt.close()
+	featNum=len(typeOfClass)-1
+	#init min and max values for the features
+	for typ in typeOfClass:
+		if typ=='string':
+			minVal.append('a')
+			maxVal.append('z')
+		elif typ=='int':
+			maxVal.append(-sys.maxint-1)
+			minVal.append(sys.maxint)
+		elif typ=='float':
+			maxVal.append(-float('inf'))
+			minVal.append(float('inf'))
+
 	with open(inputFile, 'rb') as f:
 		reader = csv.reader(f,delimiter=';')
 		heading = reader.next()
 		# count = 0
 		print heading
 		for row in reader:
+			for i in range(0,featNum):
+				if typeOfClass[i]=='int':
+					row[i]=int(row[i])					
+				elif typeOfClass[i]=='float':
+					row[i]=locale.atof(row[i])
+				if typeOfClass[i]!='string':
+					if row[i]<minVal[i]:
+						minVal[i]=row[i]
+					elif row[i]>maxVal[i]:
+						maxVal[i]=row[i]	
 			# print row
 			if row[-1] not in listOfClass:
 				listOfClass.append(row[-1])
@@ -45,7 +77,12 @@ def splitDataByClass(inputFile):
 			output.write(cl+'\t\t\t'+str(numOfClass[idx])+'\n')
 			sums = sums + numOfClass[idx]
 			idx = idx+1
-		output.write('Total: '+str(sums))
+		output.write('Total: '+str(sums)+'\n')
+		output.write('------------------------------------\n')
+		output.write('Min values:\n')
+		output.write(json.dumps(minVal))
+		output.write('\nMax values:\n')
+		output.write(json.dumps(maxVal))
 
 def splitDataKfoldCV(K):
 	stats = open(statsFile,'rb')
