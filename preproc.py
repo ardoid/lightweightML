@@ -48,7 +48,12 @@ def splitDataByClass(inputFile):
 					row[i]=int(row[i])					
 				elif typeOfClass[i]=='float':
 					row[i]=locale.atof(row[i])
-				if typeOfClass[i]!='string':
+				# elif typeOfClass[i]=='sex':
+				# 	if row[i]=='Woman' or row[i]=='Female':
+				# 		row[i]=0
+				# 	elif row[i]=='Man' or row[i]=='Male':
+				# 		row[i]=1
+				if typeOfClass[i]=='int' or typeOfClass[i]=='float':
 					if row[i]<minVal[i]:
 						minVal[i]=row[i]
 					elif row[i]>maxVal[i]:
@@ -117,12 +122,15 @@ def splitDataKfoldCV(K):
 		foldSize = d[1]/K + 1
 		print str(foldSize)
 		f = open('o'+str(classIdx)+'.txt')
-		outputFile = []
+		outputFile = []; outputNormFile = []
 		numOfClass = [0 for x in range(K)]
 		for k in range(0,K):
-			fName = 'f'+str(classIdx)+'_'+str(k)+'.txt'
+			fName = 'fn'+str(classIdx)+'_'+str(k)+'.txt'
 			output = open(fName,'w')
 			outputFile.append(output)
+			fName = 'tf'+str(classIdx)+'_'+str(k)+'.txt'
+			output = open(fName,'w')
+			outputNormFile.append(output)
 		for line in f:
 			nextIdx = random.randrange(K)
 			count = 0
@@ -140,13 +148,14 @@ def splitDataKfoldCV(K):
 				normData=[]
 				for x,y,mn,mx in zip(unNormData,typeOfClass,minVal,maxVal):
 					if y=='int':
-						#
 						normData.append((x-mn)/float(mx-mn))
 					elif y=='float':
-						#
 						normData.append((x-mn)/float(mx-mn))
+					elif y=='sex':
+						normData.append(x)
 					elif y=='string':
 						normData.append(x)
+				outputNormFile[nextIdx].write(line)
 				outputFile[nextIdx].write(json.dumps(normData)+'\n')
 				numOfClass[nextIdx]=numOfClass[nextIdx]+1
 		classIdx=classIdx+1
