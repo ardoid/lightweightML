@@ -36,6 +36,9 @@ def splitDataByClass(inputFile):
 		elif typ=='float':
 			maxVal.append(-float('inf'))
 			minVal.append(float('inf'))
+		else:
+			minVal.append('x')
+			maxVal.append('x')			
 
 	with open(inputFile, 'rb') as f:
 		reader = csv.reader(f,delimiter=';')
@@ -48,11 +51,6 @@ def splitDataByClass(inputFile):
 					row[i]=int(row[i])					
 				elif typeOfClass[i]=='float':
 					row[i]=locale.atof(row[i])
-				# elif typeOfClass[i]=='sex':
-				# 	if row[i]=='Woman' or row[i]=='Female':
-				# 		row[i]=0
-				# 	elif row[i]=='Man' or row[i]=='Male':
-				# 		row[i]=1
 				if typeOfClass[i]=='int' or typeOfClass[i]=='float':
 					if row[i]<minVal[i]:
 						minVal[i]=row[i]
@@ -87,6 +85,10 @@ def splitDataByClass(inputFile):
 		output.write(json.dumps(minVal))
 		output.write('\nMax values:\n')
 		output.write(json.dumps(maxVal))
+		for x in typeOfClass:
+			if x=='string':
+				featNum=featNum-1
+		output.write('\nFeatures: '+str(featNum))
 
 def splitDataKfoldCV(K):
 	#read datatype file to know the feature datatype
@@ -140,8 +142,8 @@ def splitDataKfoldCV(K):
 					nextIdx = 0
 				count = count + 1
 			if count > 9:
-				print 'Error: There is feature data not accounted for\n'
 				#create error log file here
+				print 'Error: There is feature data not accounted for\n'
 			else:
 				#normalize the feature values
 				unNormData=json.loads(line)
@@ -151,9 +153,15 @@ def splitDataKfoldCV(K):
 						normData.append((x-mn)/float(mx-mn))
 					elif y=='float':
 						normData.append((x-mn)/float(mx-mn))
-					elif y=='sex':
-						normData.append(x)
+					elif y=='sex':						
+						if x=='Woman' or x=='Female':
+							normData.append(0)
+						elif x=='Man' or x=='Male':
+							normData.append(1)
 					elif y=='string':
+						pass
+					# 	normData.append(x)
+					else:
 						normData.append(x)
 				outputNormFile[nextIdx].write(line)
 				outputFile[nextIdx].write(json.dumps(normData)+'\n')
