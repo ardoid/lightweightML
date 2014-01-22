@@ -53,7 +53,6 @@ def splitDataByClass(inputFile):
 						minVal[i]=row[i]
 					elif row[i]>maxVal[i]:
 						maxVal[i]=row[i]	
-			# print row
 			if row[-1] not in listOfClass:
 				listOfClass.append(row[-1])
 				numOfClass.append(1)
@@ -85,15 +84,31 @@ def splitDataByClass(inputFile):
 		output.write(json.dumps(maxVal))
 
 def splitDataKfoldCV(K):
+	#read datatype file to know the feature datatype
+	dt = open(datatypeFile,'rb')
+	typeOfClass=dt.readline().split(';')
+	dt.close()
+
+	#read the stats file for number of test data, min max value
+	stats = open(statsFile,'rb')
+	fileLen=len(stats.readlines())
 	stats = open(statsFile,'rb')
 	stats.readline()
 	stats.readline()
 	data = []
-	for line in stats:
+	for i in range(0,fileLen):
+		line=stats.readline()
 		data.append(line.strip().split('\t\t\t'))
+		if line.split(' ')[0]=='Total:':
+			break
+	stats.readline()
+	stats.readline()
+	minVal=json.loads(stats.readline())
+	stats.readline()
+	maxVal=json.loads(stats.readline())
 	stats.close()
 	data.pop() #remove the Total
-	
+
 	classIdx = 1
 	for d in data:
 		d[1]=int(d[1])
@@ -117,10 +132,22 @@ def splitDataKfoldCV(K):
 					nextIdx = 0
 				count = count + 1
 			if count > 9:
-				print 'Oh No'
+				print 'Error: There is feature data not accounted for\n'
+				#create error log file here
 			else:
-				outputFile[nextIdx].write(line)
-				# outputFile[indexOfClass].write('\n')
+				#normalize the feature values
+				unNormData=json.loads(line)
+				normData=[]
+				for x,y,mn,mx in zip(unNormData,typeOfClass,minVal,maxVal):
+					if y=='int':
+						#
+						normData.append((x-mn)/float(mx-mn))
+					elif y=='float':
+						#
+						normData.append((x-mn)/float(mx-mn))
+					elif y=='string':
+						normData.append(x)
+				outputFile[nextIdx].write(json.dumps(normData)+'\n')
 				numOfClass[nextIdx]=numOfClass[nextIdx]+1
 		classIdx=classIdx+1
 
