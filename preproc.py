@@ -1,7 +1,8 @@
-#--------------------------------------------------------------
-# Data preprocessing
-# Author : Ardo
-#--------------------------------------------------------------
+#--------------------------------------------------------------#
+# Data preprocessing										   #
+# Do all kind of filtering and normalization 				   #
+# Author : Ardo												   #
+#--------------------------------------------------------------#
 
 import csv
 import json
@@ -86,7 +87,7 @@ def splitDataByClass(inputFile):
 		output.write('\nMax values:\n')
 		output.write(json.dumps(maxVal))
 		for x in typeOfClass:
-			if x=='string':
+			if x=='string' or x=='class':
 				featNum=featNum-1
 		output.write('\nFeatures: '+str(featNum))
 
