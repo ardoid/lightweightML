@@ -14,8 +14,8 @@ class Stats:
 
 	minVal=[]
 	maxVal=[]
-	typeOfClass=[]
-	classData=[]
+	typeOfFeats=[]
+	classLabel=[]
 	totalData=0
 	numOfFeat=0
 
@@ -25,7 +25,7 @@ class Stats:
 
 	def loadTypes(self):
 		dt = open(self.datatypeFile,'rb')
-		self.typeOfClass=dt.readline().split(';')
+		self.typeOfFeats=dt.readline().split(';')
 		dt.close()
 
 	def loadStats(self):
@@ -40,7 +40,7 @@ class Stats:
 			if buf[0]=='Total:':
 				self.totalData=int(buf[1])
 				break
-			self.classData.append(line.strip().split('\t\t\t'))
+			self.classLabel.append(line.strip().split('\t\t\t'))
 		stats.readline()
 		stats.readline()
 		self.minVal=json.loads(stats.readline())

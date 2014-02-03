@@ -137,12 +137,12 @@ def splitDataKfoldCV(K):
 		for line in f:
 			nextIdx = random.randrange(K)
 			count = 0
-			while numOfClass[nextIdx] > foldSize and count < 10:
+			while numOfClass[nextIdx] > foldSize and count < K:
 				nextIdx = nextIdx + 1
 				if nextIdx >= K:
 					nextIdx = 0
 				count = count + 1
-			if count > 9:
+			if count > K:
 				#create error log file here
 				print 'Error: There is feature data not accounted for\n'
 			else:
