@@ -6,6 +6,7 @@
 from numpy import *
 import operator
 import csv
+import json
 
 class ML:
 
@@ -19,6 +20,17 @@ class ML:
 		self.testMatrix=tm
 		self.inputLabel=il
 		self.testLabel=tl
+
+	def logResult(self,toWrite):
+		toWrite=str(toWrite)
+		with open(self.resultFile,'a') as csvfile:
+			reader=csv.reader(csvfile)
+			logwriter=csv.writer(csvfile,delimiter=';')
+			if len(reader.readlines())==0:
+				header=['Method','K-Fold','Input','Validation','Features',\
+				'Error','Error %','ML method','HyperParameter','HP details']
+				logwriter.writerow(header)
+			logwriter.writerow(toWrite)
 
 	def kNNClassify(self,inM,K):
 		dataSetSize = self.inputMatrix.shape[0]
@@ -34,7 +46,7 @@ class ML:
 		sClassCount = sorted(classCnt.iteritems(), key=operator.itemgetter(1), reverse=True)
 		return sClassCount[0][0]
 
-	def kNN(self,K):
+	def kNN(self,K=3):
 		retList=[]
 		i=0; error=0
 		for row in self.testMatrix:
@@ -53,11 +65,9 @@ class ML:
 		# 		str(self.testMatrix.shape[0]),str(self.inputMatrix.shape[1]),\
 		# 		str(error),str(errPct),str(K)]
 		toFile=[self.valMethod,self.iterations,self.inputMatrix.shape[0],\
-				self.testMatrix.shape[0],self.inputMatrix.shape[1],error,errPct,K]
-		toFile=str(toFile)
-		with open(self.resultFile,'a') as csvfile:
-			logwriter=csv.writer(csvfile,delimiter=';')
-			logwriter.writerow(toFile)
+				self.testMatrix.shape[0],self.inputMatrix.shape[1],error,errPct,
+				'kNN',K]
+		self.logResult(toFile)
 
 	def decisionStump(self,inputMatrix,dimen,threshVal,threshIneq):
 	    retArray = ones((shape(inputMatrix)[0],1))
@@ -75,7 +85,7 @@ class ML:
 	    for i in range(n):
 	        rangeMin=self.inputMatrix[:,i].min(); rangeMax = self.inputMatrix[:,i].max();
 	        stepSize=(rangeMax-rangeMin)/numSteps
-	        for j in range(-1,int(numSteps)+1):#loop over all range in current dimension
+	        for j in range(-1,int(numSteps)+1):
 	            for inequal in ['lt', 'gt']:
 	                threshVal=(rangeMin + float(j) * stepSize)
 	                predictedVals=self.decisionStump(self.inputMatrix,i,threshVal,inequal)
@@ -128,10 +138,10 @@ class ML:
 	        aggClassEst+=classifierArr[i]['alpha']*classEst
 	    return sign(aggClassEst)
 
-	def adaClassifyTest(self,testMatrix,classifierArr):
+	def adaClassifyTest(self,testMatrix,classifierArr,hP):
 	    m=shape(testMatrix)[0]
 	    aggClassEst=mat(zeros((m,1)))
-	    print classifierArr
+	    # print classifierArr
 	    for i in range(len(classifierArr)):
 	        classEst=self.decisionStump(testMatrix,\
 	        						 classifierArr[i]['dim'],\
@@ -141,14 +151,17 @@ class ML:
 
 		testLabelM=mat(self.testLabel)
 	    aggErrors=multiply(sign(aggClassEst)!=testLabelM.T,ones((m,1)))
-	    errorRate=aggErrors.sum()/m
-	    print aggErrors
+	    errorRate=aggErrors.sum()/m * 100
+	    # print aggErrors
 	    print m
 	    print "Error Rate: "+str(errorRate)
+	    toFile=[self.valMethod,self.iterations,self.inputMatrix.shape[0],\
+	    		self.testMatrix.shape[0],self.inputMatrix.shape[1],\
+	    		error,errorRate,'AdaBoost',hP,json.dumps(classifierArr)]
+	    self.logResult(toFile)
 
-
-	def adaBoost(self):
+	def adaBoost(self,hP=40):
 		weakClassArr,aggClassEst=self.adaBoostTrain()
-		self.adaClassifyTest(self.testMatrix,weakClassArr)
+		self.adaClassifyTest(self.testMatrix,weakClassArr,hP)
 
 
