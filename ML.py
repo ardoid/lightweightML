@@ -11,6 +11,7 @@ class ML:
 
 	valMethod=' '
 	iterations=0
+	currClass=' '
 	resultFile='result.csv'
 
 	def __init__(self,im,tm,il,tl):
@@ -124,7 +125,6 @@ class ML:
 	        						 classifierArr[i]['dim'],\
 	                                 classifierArr[i]['thresh'],\
 	                                 classifierArr[i]['ineq'])
-	        print classEst.shape
 	        aggClassEst+=classifierArr[i]['alpha']*classEst
 	    return sign(aggClassEst)
 
@@ -137,14 +137,14 @@ class ML:
 	        						 classifierArr[i]['dim'],\
 	                                 classifierArr[i]['thresh'],\
 	                                 classifierArr[i]['ineq'])
-	        print classEst.shape
 	        aggClassEst+=classifierArr[i]['alpha']*classEst
 
 		testLabelM=mat(self.testLabel)
-		m=testLabelM.shape[0]
 	    aggErrors=multiply(sign(aggClassEst)!=testLabelM.T,ones((m,1)))
 	    errorRate=aggErrors.sum()/m
-	    print str(errorRate)
+	    print aggErrors
+	    print m
+	    print "Error Rate: "+str(errorRate)
 
 
 	def adaBoost(self):
