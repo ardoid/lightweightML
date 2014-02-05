@@ -48,7 +48,7 @@ def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass):
 
 def loadKFCV(K,mlMethod,cls=1,currClass=''):
 	testDataSize=stats.totalData/K+K
-	for i in range(K):
+	for i in range(1,2):
 		numClass=len(stats.classLabel)
 		#load test data
 		testMat=zeros((testDataSize,stats.numOfFeat))
@@ -56,7 +56,8 @@ def loadKFCV(K,mlMethod,cls=1,currClass=''):
 		index=0
 		sumOfTestData=0
 		for j in range(1,numClass+1):
-			sumOfTestData,index=loadFromFile(i,j,index,tl,testMat,sumOfTestData,cls,currClass)
+			sumOfTestData,index=loadFromFile(i,j,index,tl,testMat,\
+				sumOfTestData,cls,currClass)
 		if sumOfTestData!=testDataSize:
 			testMat=testMat[0:sumOfTestData,:]
 
@@ -71,7 +72,8 @@ def loadKFCV(K,mlMethod,cls=1,currClass=''):
 			if l==i:
 				continue
 			for j in range(1,numClass+1):
-				sumOfTestData,index=loadFromFile(l,j,index,ll,learnMat,sumOfTestData,cls,currClass)
+				sumOfTestData,index=loadFromFile(l,j,index,ll,learnMat,\
+					sumOfTestData,cls,currClass)
 		if sumOfTestData!=testDataSize:
 			learnMat=learnMat[0:sumOfTestData,:]
 
@@ -85,6 +87,7 @@ def loadKFCV(K,mlMethod,cls=1,currClass=''):
 		elif mlMethod=='adaBoost':
 			ml.valMethod='KFoldCV-1VSall'
 			ml.currClass=currClass
+			ml.classLabel=[klas[0] for klas in stats.classLabel]
 			ml.adaBoost()
 		else:
 			print 'Default method: 3NN'
@@ -99,8 +102,15 @@ def load1vsAll(mlMethod):
 
 stats=loadStats()
 # loadKFCV(10,'kNN')
-load1vsAll('adaBoost')
 
+# load1vsAll('adaBoost')
 
+l=[1,2,3,4]
+ml=ML.ML(mat(l),mat(l),l,l)
+# ml.logResult(l)
+# print stats.classLabel[0]
+ml.classLabel=[klas[0] for klas in stats.classLabel]
+ml.loadResult()
+print ml.finalClassifier
 
 

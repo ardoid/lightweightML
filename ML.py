@@ -13,6 +13,8 @@ class ML:
 	valMethod=' '
 	iterations=0
 	currClass=' '
+	classLabel=[]
+	finalClassifier=[]
 	resultFile='result.csv'
 
 	def __init__(self,im,tm,il,tl):
@@ -21,16 +23,48 @@ class ML:
 		self.inputLabel=il
 		self.testLabel=tl
 
-	def logResult(self,toWrite):
-		toWrite=str(toWrite)
+	def logResult(self,toWrite,classArr=[]):
+		# toWrite=str(toWrite)
+		print toWrite
+		isEmpty=False
+		with open(self.resultFile) as csvfile:
+			# reader=csv.reader(csvfile)
+			# for row in reader:
+			# 	isEmpty=False
+			# 	break					
+			if len(csvfile.readlines())==0:
+				isEmpty=True
 		with open(self.resultFile,'a') as csvfile:
-			reader=csv.reader(csvfile)
-			logwriter=csv.writer(csvfile,delimiter=';')
-			if len(reader.readlines())==0:
-				header=['Method','K-Fold','Input','Validation','Features',\
-				'Error','Error %','ML method','HyperParameter','HP details']
-				logwriter.writerow(header)
-			logwriter.writerow(toWrite)
+			# logwriter=csv.writer(csvfile,delimiter=';')
+			if isEmpty:
+				header=['Method','Class','K-Fold','Input Data','Test Data','Features',\
+				'Error','Error %','ML method','HyperParameter','Remark','HP details']
+				# logwriter.writerow(header)
+				s=';'.join(header)
+				csvfile.write(s+'\n')
+			# logwriter.writerow(toWrite)
+			s=';'.join(toWrite)
+			print s
+			csvfile.write(s)
+			csvfile.write('\n')
+
+	def loadResult(self):
+		print self.classLabel
+		for klas in self.classLabel:
+			# with open(self.resultFile) as csvfile:
+			csvfile=open(self.resultFile)
+			filelen=len(csvfile.readlines())-1
+			csvfile=open(self.resultFile)
+			csvfile.readline()
+			errMargin=100.0
+			bestClassif=0
+			for i in range(filelen):
+				line=csvfile.readline()
+				line=line.split(';')
+				if line[1]==klas and float(line[7])<errMargin:
+					errMargin=float(line[7])
+					bestClassif=json.loads(line[11])
+			self.finalClassifier.append(bestClassif)
 
 	def kNNClassify(self,inM,K):
 		dataSetSize = self.inputMatrix.shape[0]
@@ -43,7 +77,7 @@ class ML:
 		for i in range(K):
 		    voteLabel = self.inputLabel[sortedDistIndicies[i]]
 		    classCnt[voteLabel] = classCnt.get(voteLabel,0) + 1
-		sClassCount = sorted(classCnt.iteritems(), key=operator.itemgetter(1), reverse=True)
+		sClassCount=sorted(classCnt.iteritems(),key=operator.itemgetter(1),reverse=True)
 		return sClassCount[0][0]
 
 	def kNN(self,K=3):
@@ -61,12 +95,12 @@ class ML:
 		print "Test Data: "
 		print self.testMatrix.shape
 		print "Error: "+str(error)+" "+str(errPct)+"  K="+str(K)
-		# toFile=[self.valMethod,str(self.iterations),str(self.inputMatrix.shape[0]),\
-		# 		str(self.testMatrix.shape[0]),str(self.inputMatrix.shape[1]),\
-		# 		str(error),str(errPct),str(K)]
-		toFile=[self.valMethod,self.iterations,self.inputMatrix.shape[0],\
-				self.testMatrix.shape[0],self.inputMatrix.shape[1],error,errPct,
-				'kNN',K]
+		toFile=[self.valMethod,' ',str(self.iterations),str(self.inputMatrix.shape[0]),\
+				str(self.testMatrix.shape[0]),str(self.inputMatrix.shape[1]),\
+				str(error),str(errPct),'KNN',str(K)]
+		# toFile=[self.valMethod,self.iterations,self.inputMatrix.shape[0],\
+		# 		self.testMatrix.shape[0],self.inputMatrix.shape[1],error,errPct,
+		# 		'kNN',K]
 		self.logResult(toFile)
 
 	def decisionStump(self,inputMatrix,dimen,threshVal,threshIneq):
@@ -92,8 +126,6 @@ class ML:
 	                errArr=mat(ones((m,1)))
 	                errArr[predictedVals==labelMat] = 0
 	                weightedError=D.T*errArr  #calc total error multiplied by D
-#print "split: dim %d, thresh %.2f, thresh ineqal: %s, 
-#the weighted error is %.3f" % (i, threshVal, inequal, weightedError)
 	                if weightedError < minError:
 	                    minError=weightedError
 	                    bestClasEst=predictedVals.copy()
@@ -114,7 +146,6 @@ class ML:
 	        alpha = float(0.5*log((1.0-error)/max(error,1e-16)))
 	        bestStump['alpha']=alpha  
 	        weakClassArr.append(bestStump) 
-	        #print "classEst: ",classEst.T
 	        expon = multiply(-1*alpha*classLabels.T,classEst)
 	        D=multiply(D,exp(expon)) 
 	        D=D/D.sum()
@@ -155,13 +186,31 @@ class ML:
 	    # print aggErrors
 	    print m
 	    print "Error Rate: "+str(errorRate)
-	    toFile=[self.valMethod,self.iterations,self.inputMatrix.shape[0],\
-	    		self.testMatrix.shape[0],self.inputMatrix.shape[1],\
-	    		error,errorRate,'AdaBoost',hP,json.dumps(classifierArr)]
+	    # toFile=[self.valMethod,self.iterations,self.inputMatrix.shape[0],\
+	    # 		self.testMatrix.shape[0],self.inputMatrix.shape[1],\
+	    # 		aggErrors.sum(),errorRate,'AdaBoost',hP] #,json.dumps(classifierArr)]
+	    toFile=[self.valMethod,self.currClass,str(self.iterations),str(self.inputMatrix.shape[0]),\
+	    		str(self.testMatrix.shape[0]),str(self.inputMatrix.shape[1]),\
+	    		str(aggErrors.sum()),str(errorRate),'AdaBoost',str(hP),'Validation stage',json.dumps(classifierArr)]
 	    self.logResult(toFile)
 
 	def adaBoost(self,hP=40):
-		weakClassArr,aggClassEst=self.adaBoostTrain()
+		weakClassArr,aggClassEst=self.adaBoostTrain(hP)
 		self.adaClassifyTest(self.testMatrix,weakClassArr,hP)
+
+	def adaBoostMultiClassClassify(self):
+		classIndex=0
+		finalResult=[None]*self.inputMatrix.shape[0]
+		for klas in self.classLabel:
+			result=adaClassify(self.inputMatrix,finalClassifier[classIndex])
+			index=0
+			for res in result:
+				if res==1:
+					finalResult[index]=klas
+				index+=1
+			classIndex+=1
+		
+
+
 
 
