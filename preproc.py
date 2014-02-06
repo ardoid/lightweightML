@@ -144,7 +144,7 @@ def splitDataKfoldCV(K):
 				count = count + 1
 			if count > K:
 				#create error log file here
-				print 'Error: There is feature data not accounted for\n'
+				print 'Warning: There is feature data not accounted for\n'
 			else:
 				#normalize the feature values
 				unNormData=json.loads(line)
@@ -169,7 +169,8 @@ def splitDataKfoldCV(K):
 				numOfClass[nextIdx]=numOfClass[nextIdx]+1
 		classIdx=classIdx+1
 
-
+def normalizeInput():
+	pass
 
 
 #start of the preprocessing program
