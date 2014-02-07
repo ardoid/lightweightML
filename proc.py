@@ -9,6 +9,7 @@ import json
 import Stats
 import ML
 from numpy import *
+import random
 
 def loadStats():
 	stats = Stats.Stats()
@@ -25,8 +26,8 @@ def testData(method,param,mlMethod):
 	else:
 		print 'Error: Unknown method'
 
-def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass):
-	fName = 'fn'+str(j)+'_'+str(i)+'.txt'
+def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass,prefix='fn'):
+	fName = prefix+str(j)+'_'+str(i)+'.txt'
 	fn = open(fName)
 	lineNum=len(fn.readlines())
 	sumOfTestData+=lineNum
@@ -35,6 +36,12 @@ def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass):
 		line=fn.readline()
 		line=json.loads(line)
 		inMat[index,:]=line[0:-1]
+		#hsvh
+		# if line[1]=='Woman':
+		# 	line[1]=0
+		# else: line[1]=1
+		# inMat[index,:]=line[1:-1]
+		# inMat[index,:]=line[0:-1] HACK
 		if cls==1:
 			il.append(line[-1])
 		else:
@@ -48,7 +55,7 @@ def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass):
 
 def loadKFCV(K,mlMethod,cls=1,currClass=''):
 	testDataSize=stats.totalData/K+K
-	for i in range(K):
+	for i in range(1):
 		numClass=len(stats.classLabel)
 		#load test data
 		testMat=zeros((testDataSize,stats.numOfFeat))
@@ -99,11 +106,35 @@ def load1vsAll(mlMethod):
 		print klas
 		loadKFCV(10,mlMethod,-1,klas[0])
 	
+def load1FoldDataForTest():
+	testDataSize=stats.totalData/10+10
+	# for i in range(K):
+	numClass=len(stats.classLabel)
+	#load test data
+	testMat=zeros((testDataSize,stats.numOfFeat))
+	tl=[]
+	index=0
+	sumOfTestData=0
+	for j in range(1,numClass+1):
+		i=random.randrange(10)
+		sumOfTestData,index=loadFromFile(i,j,index,tl,testMat,\
+			sumOfTestData,1,'','tf')
+	if sumOfTestData!=testDataSize:
+		testMat=testMat[0:sumOfTestData,:]
+	print testMat.shape
+	ml=ML.ML(testMat,testMat,tl,tl)
+	ml.classLabel=[klas[0] for klas in stats.classLabel]
+	ml.loadResult()
+	fin=ml.adaBoostMultiClassClassify()
+
+
 
 stats=loadStats()
-# loadKFCV(10,'kNN')
+loadKFCV(10,'kNN')
 
-load1vsAll('adaBoost')
+# load1vsAll('adaBoost')
+
+# load1FoldDataForTest()
 
 # l=[1,2,3,4]
 # ml=ML.ML(mat(l),mat(l),l,l)

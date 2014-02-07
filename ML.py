@@ -5,7 +5,6 @@
 #--------------------------------------------------------------#
 from numpy import *
 import operator
-import csv
 import json
 
 class ML:
@@ -24,25 +23,17 @@ class ML:
 		self.testLabel=tl
 
 	def logResult(self,toWrite,classArr=[]):
-		# toWrite=str(toWrite)
 		print toWrite
 		isEmpty=False
 		with open(self.resultFile) as csvfile:
-			# reader=csv.reader(csvfile)
-			# for row in reader:
-			# 	isEmpty=False
-			# 	break					
 			if len(csvfile.readlines())==0:
 				isEmpty=True
 		with open(self.resultFile,'a') as csvfile:
-			# logwriter=csv.writer(csvfile,delimiter=';')
 			if isEmpty:
 				header=['Method','Class','K-Fold','Input Data','Test Data','Features',\
 				'Error','Error %','ML method','HyperParameter','Remark','HP details']
-				# logwriter.writerow(header)
 				s=';'.join(header)
 				csvfile.write(s+'\n')
-			# logwriter.writerow(toWrite)
 			s=';'.join(toWrite)
 			print s
 			csvfile.write(s)
@@ -67,16 +58,16 @@ class ML:
 			self.finalClassifier.append(bestClassif)
 
 	def kNNClassify(self,inM,K):
-		dataSetSize = self.inputMatrix.shape[0]
-		diffMat = tile(inM, (dataSetSize,1)) - self.inputMatrix
-		sqDiffMat = diffMat**2
-		sqDist = sqDiffMat.sum(axis=1)
-		distances = sqDist**0.5
-		sortedDistIndicies = distances.argsort()     
+		dataSetSize=self.inputMatrix.shape[0]
+		diffM=tile(inM, (dataSetSize,1)) - self.inputMatrix
+		sqDiffM=diffM**2
+		sqDist=sqDiffM.sum(axis=1)
+		distances=sqDist**0.5
+		sortedDistIndicies=distances.argsort()     
 		classCnt={}          
 		for i in range(K):
-		    voteLabel = self.inputLabel[sortedDistIndicies[i]]
-		    classCnt[voteLabel] = classCnt.get(voteLabel,0) + 1
+		    voteLabel=self.inputLabel[sortedDistIndicies[i]]
+		    classCnt[voteLabel]=classCnt.get(voteLabel,0) + 1
 		sClassCount=sorted(classCnt.iteritems(),key=operator.itemgetter(1),reverse=True)
 		return sClassCount[0][0]
 
@@ -98,9 +89,6 @@ class ML:
 		toFile=[self.valMethod,' ',str(self.iterations),str(self.inputMatrix.shape[0]),\
 				str(self.testMatrix.shape[0]),str(self.inputMatrix.shape[1]),\
 				str(error),str(errPct),'KNN',str(K)]
-		# toFile=[self.valMethod,self.iterations,self.inputMatrix.shape[0],\
-		# 		self.testMatrix.shape[0],self.inputMatrix.shape[1],error,errPct,
-		# 		'kNN',K]
 		self.logResult(toFile)
 
 	def decisionStump(self,inputMatrix,dimen,threshVal,threshIneq):
@@ -142,7 +130,6 @@ class ML:
 	    classLabels=mat(self.inputLabel)
 	    for i in range(numIt):
 	        bestStump,error,classEst=self.buildStump(D)
-	        #print "D:",D.T
 	        alpha = float(0.5*log((1.0-error)/max(error,1e-16)))
 	        bestStump['alpha']=alpha  
 	        weakClassArr.append(bestStump) 
@@ -150,7 +137,6 @@ class ML:
 	        D=multiply(D,exp(expon)) 
 	        D=D/D.sum()
 	        aggClassEst+=alpha*classEst
-	        #print "aggClassEst: ",aggClassEst.T
 	        aggErrors=multiply(sign(aggClassEst)!=classLabels.T,ones((m,1)))
 	        errorRate=aggErrors.sum()/m
 	        if errorRate==0.0: break
@@ -172,7 +158,6 @@ class ML:
 	def adaClassifyTest(self,testMatrix,classifierArr,hP):
 	    m=shape(testMatrix)[0]
 	    aggClassEst=mat(zeros((m,1)))
-	    # print classifierArr
 	    for i in range(len(classifierArr)):
 	        classEst=self.decisionStump(testMatrix,\
 	        						 classifierArr[i]['dim'],\
@@ -183,12 +168,8 @@ class ML:
 		testLabelM=mat(self.testLabel)
 	    aggErrors=multiply(sign(aggClassEst)!=testLabelM.T,ones((m,1)))
 	    errorRate=aggErrors.sum()/m * 100
-	    # print aggErrors
 	    print m
 	    print "Error Rate: "+str(errorRate)
-	    # toFile=[self.valMethod,self.iterations,self.inputMatrix.shape[0],\
-	    # 		self.testMatrix.shape[0],self.inputMatrix.shape[1],\
-	    # 		aggErrors.sum(),errorRate,'AdaBoost',hP] #,json.dumps(classifierArr)]
 	    toFile=[self.valMethod,self.currClass,str(self.iterations),str(self.inputMatrix.shape[0]),\
 	    		str(self.testMatrix.shape[0]),str(self.inputMatrix.shape[1]),\
 	    		str(aggErrors.sum()),str(errorRate),'AdaBoost',str(hP),'Validation stage',json.dumps(classifierArr)]
@@ -200,15 +181,28 @@ class ML:
 
 	def adaBoostMultiClassClassify(self):
 		classIndex=0
-		finalResult=[None]*self.inputMatrix.shape[0]
+		finalResult=[None]*self.testMatrix.shape[0]
 		for klas in self.classLabel:
-			result=adaClassify(self.inputMatrix,finalClassifier[classIndex])
+			result=self.adaClassify(self.testMatrix,self.finalClassifier[classIndex])
 			index=0
 			for res in result:
 				if res==1:
 					finalResult[index]=klas
 				index+=1
 			classIndex+=1
+# [i for i, j in zip(a, b) if i == j]
+		print self.testMatrix.shape
+		m=shape(self.testMatrix)[0]
+		testLabelM=mat(self.testLabel)
+		finalResultM=mat(finalResult)
+		aggErrors=multiply(finalResultM!=testLabelM,ones((1,m)))
+		errorRate=aggErrors.sum()/m * 100
+		with open('finres.txt','w') as fr:
+			fr.write(json.dumps(finalResult))
+			fr.write('\n')
+			fr.write(json.dumps(self.testLabel))
+		print str(errorRate)		
+		return finalResult
 		
 
 
