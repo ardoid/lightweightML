@@ -55,7 +55,7 @@ def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass,prefix='fn'):
 
 def loadKFCV(K,mlMethod,cls=1,currClass=''):
 	testDataSize=stats.totalData/K+K
-	for i in range(1):
+	for i in range(1,10):
 		numClass=len(stats.classLabel)
 		#load test data
 		testMat=zeros((testDataSize,stats.numOfFeat))

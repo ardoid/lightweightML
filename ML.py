@@ -15,6 +15,7 @@ class ML:
 	classLabel=[]
 	finalClassifier=[]
 	resultFile='result.csv'
+	outputFile='output.csv'
 
 	def __init__(self,im,tm,il,tl):
 		self.inputMatrix=im
@@ -38,6 +39,12 @@ class ML:
 			print s
 			csvfile.write(s)
 			csvfile.write('\n')
+
+	def writeResult(self,result,input):
+		with open(outputFile,'w') as fr:
+			fr.write(json.dumps(result))
+			fr.write('\n')
+			fr.write(json.dumps(input))
 
 	def loadResult(self):
 		print self.classLabel
@@ -82,6 +89,7 @@ class ML:
 			i=i+1
 		# 	if i>50:
 		# 		break
+		self.writeResult(retList,self.testLabel)
 		errPct=error/float(self.testMatrix.shape[0])*100
 		print "Test Data: "
 		print self.testMatrix.shape
@@ -197,10 +205,7 @@ class ML:
 		finalResultM=mat(finalResult)
 		aggErrors=multiply(finalResultM!=testLabelM,ones((1,m)))
 		errorRate=aggErrors.sum()/m * 100
-		with open('finres.txt','w') as fr:
-			fr.write(json.dumps(finalResult))
-			fr.write('\n')
-			fr.write(json.dumps(self.testLabel))
+		self.writeResult(finalResult,self.testLabel)
 		print str(errorRate)		
 		return finalResult
 		
