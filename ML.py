@@ -49,7 +49,6 @@ class ML:
 	def loadResult(self):
 		print self.classLabel
 		for klas in self.classLabel:
-			# with open(self.resultFile) as csvfile:
 			csvfile=open(self.resultFile)
 			filelen=len(csvfile.readlines())-1
 			csvfile=open(self.resultFile)
@@ -87,8 +86,6 @@ class ML:
 			if res!=self.testLabel[i]:
 				error+=1
 			i=i+1
-		# 	if i>50:
-		# 		break
 		self.writeResult(retList,self.testLabel)
 		errPct=error/float(self.testMatrix.shape[0])*100
 		print "Test Data: "
@@ -121,7 +118,7 @@ class ML:
 	                predictedVals=self.decisionStump(self.inputMatrix,i,threshVal,inequal)
 	                errArr=mat(ones((m,1)))
 	                errArr[predictedVals==labelMat] = 0
-	                weightedError=D.T*errArr  #calc total error multiplied by D
+	                weightedError=D.T*errArr
 	                if weightedError < minError:
 	                    minError=weightedError
 	                    bestClasEst=predictedVals.copy()
@@ -198,7 +195,6 @@ class ML:
 					finalResult[index]=klas
 				index+=1
 			classIndex+=1
-# [i for i, j in zip(a, b) if i == j]
 		print self.testMatrix.shape
 		m=shape(self.testMatrix)[0]
 		testLabelM=mat(self.testLabel)
@@ -209,7 +205,4 @@ class ML:
 		print str(errorRate)		
 		return finalResult
 		
-
-
-
 

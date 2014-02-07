@@ -4,7 +4,6 @@
 # Author : Ardo												   #
 #--------------------------------------------------------------#
 
-# import os.path
 import json
 import Stats
 import ML
@@ -18,15 +17,15 @@ def loadStats():
 def writeData():
 	pass
 
-def testData(method,param,mlMethod):	
+def testData(method,param,mlMethod,hp):	
 	if method=='KFCV':
-		loadKFCV(param,mlMethod)
+		loadKFCV(param,mlMethod,hp)
 	elif method=='1VSALL':
 		load1vsAll()
 	else:
 		print 'Error: Unknown method'
 
-def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass,prefix='fn'):
+def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass,stridx=0,prefix='fn'):
 	fName = prefix+str(j)+'_'+str(i)+'.txt'
 	fn = open(fName)
 	lineNum=len(fn.readlines())
@@ -35,7 +34,7 @@ def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass,prefix='fn'):
 	for line in range(0,lineNum):
 		line=fn.readline()
 		line=json.loads(line)
-		inMat[index,:]=line[0:-1]
+		inMat[index,:]=line[stridx:-1]
 		if cls==1:
 			il.append(line[-1])
 		else:
@@ -47,7 +46,7 @@ def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass,prefix='fn'):
 	fn.close()
 	return sumOfTestData,index
 
-def loadKFCV(K,mlMethod,cls=1,currClass=''):
+def loadKFCV(K,mlMethod,hp,cls=1,currClass=''):
 	testDataSize=stats.totalData/K+K
 	for i in range(K):
 		numClass=len(stats.classLabel)
@@ -82,21 +81,21 @@ def loadKFCV(K,mlMethod,cls=1,currClass=''):
 		ml.valMethod='K-Fold CV'
 		ml.iterations=i
 		if mlMethod=='kNN':
-			ml.kNN(20)
+			ml.kNN(hp)
 		elif mlMethod=='adaBoost':
 			ml.valMethod='KFoldCV-1VSall'
 			ml.currClass=currClass
 			ml.classLabel=[klas[0] for klas in stats.classLabel]
-			ml.adaBoost(70)
+			ml.adaBoost(hp)
 		else:
 			print 'Default method: 3NN'
 			ml.kNN(3)
 
-def load1vsAll(mlMethod,K=10):
+def load1vsAll(mlMethod,hp,K=10):
 	numClass=len(stats.classLabel)
 	for klas in stats.classLabel:
 		print klas
-		loadKFCV(K,mlMethod,-1,klas[0])
+		loadKFCV(K,mlMethod,hp,-1,klas[0])
 	
 def load1FoldDataForTest():
 	testDataSize=stats.totalData/10+10
@@ -118,13 +117,33 @@ def load1FoldDataForTest():
 	ml.loadResult()
 	fin=ml.adaBoostMultiClassClassify()
 
+def load1FoldDataForKNNTest():
+	testDataSize=stats.totalData/10+10
+	numClass=len(stats.classLabel)
+	#load test data
+	testMat=zeros((testDataSize,stats.numOfFeat))
+	tl=[]
+	index=0
+	sumOfTestData=0
+	for j in range(1,numClass+1):
+		i=random.randrange(10)
+		sumOfTestData,index=loadFromFile(i,j,index,tl,testMat,\
+			sumOfTestData,1,'',4,'tf')
+	if sumOfTestData!=testDataSize:
+		testMat=testMat[0:sumOfTestData,:]
+	print testMat.shape
+	ml=ML.ML(testMat,testMat,tl,tl)
+	fin=ml.kNN(5)
 
-
+# load the stats file
 stats=loadStats()
-# loadKFCV(10,'kNN')
 
-load1vsAll('adaBoost')
+# this is for K-Fold training KNN
+# loadKFCV(10,'kNN',20)
 
-# load1FoldDataForTest()
+# this is for 1 vs all K-Fold AdaBoost
+# load1vsAll('adaBoost',40)
 
+# this is to test the resulting AdaBoost
+load1FoldDataForTest()
 

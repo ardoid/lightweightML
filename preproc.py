@@ -68,9 +68,6 @@ def splitDataByClass(inputFile):
 				outputFile[indexOfClass].write(json.dumps(row))
 				outputFile[indexOfClass].write('\n')
 				numOfClass[indexOfClass]=numOfClass[indexOfClass]+1
-			# count = count + 1
-			# if count==1000:
-			# 	break
 		output = open(statsFile,'w')
 		output.write('Class\t\t\t Size\n')
 		output.write('------\t\t\t-----\n')
@@ -178,11 +175,6 @@ if not (os.path.isfile(statsFile)):
 	splitDataByClass(inputFile)
 else:
 	splitDataKfoldCV(10)
-
-
-
-
-
 
 
 
