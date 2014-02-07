@@ -55,7 +55,7 @@ def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass,prefix='fn'):
 
 def loadKFCV(K,mlMethod,cls=1,currClass=''):
 	testDataSize=stats.totalData/K+K
-	for i in range(1,10):
+	for i in range(K):
 		numClass=len(stats.classLabel)
 		#load test data
 		testMat=zeros((testDataSize,stats.numOfFeat))
@@ -90,21 +90,21 @@ def loadKFCV(K,mlMethod,cls=1,currClass=''):
 		ml.valMethod='K-Fold CV'
 		ml.iterations=i
 		if mlMethod=='kNN':
-			ml.kNN(3)
+			ml.kNN(20)
 		elif mlMethod=='adaBoost':
 			ml.valMethod='KFoldCV-1VSall'
 			ml.currClass=currClass
 			ml.classLabel=[klas[0] for klas in stats.classLabel]
-			ml.adaBoost()
+			ml.adaBoost(70)
 		else:
 			print 'Default method: 3NN'
 			ml.kNN(3)
 
-def load1vsAll(mlMethod):
+def load1vsAll(mlMethod,K=10):
 	numClass=len(stats.classLabel)
 	for klas in stats.classLabel:
 		print klas
-		loadKFCV(10,mlMethod,-1,klas[0])
+		loadKFCV(K,mlMethod,-1,klas[0])
 	
 def load1FoldDataForTest():
 	testDataSize=stats.totalData/10+10
@@ -118,7 +118,7 @@ def load1FoldDataForTest():
 	for j in range(1,numClass+1):
 		i=random.randrange(10)
 		sumOfTestData,index=loadFromFile(i,j,index,tl,testMat,\
-			sumOfTestData,1,'','tf')
+			sumOfTestData,1,'') #,'tf')
 	if sumOfTestData!=testDataSize:
 		testMat=testMat[0:sumOfTestData,:]
 	print testMat.shape
@@ -130,9 +130,9 @@ def load1FoldDataForTest():
 
 
 stats=loadStats()
-loadKFCV(10,'kNN')
+# loadKFCV(10,'kNN')
 
-# load1vsAll('adaBoost')
+load1vsAll('adaBoost')
 
 # load1FoldDataForTest()
 

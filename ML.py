@@ -15,7 +15,7 @@ class ML:
 	classLabel=[]
 	finalClassifier=[]
 	resultFile='result.csv'
-	outputFile='output.csv'
+	outputFile='output.txt'
 
 	def __init__(self,im,tm,il,tl):
 		self.inputMatrix=im
@@ -41,7 +41,7 @@ class ML:
 			csvfile.write('\n')
 
 	def writeResult(self,result,input):
-		with open(outputFile,'w') as fr:
+		with open(self.outputFile,'w') as fr:
 			fr.write(json.dumps(result))
 			fr.write('\n')
 			fr.write(json.dumps(input))
