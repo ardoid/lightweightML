@@ -36,12 +36,6 @@ def loadFromFile(i,j,index,il,inMat,sumOfTestData,cls,currClass,prefix='fn'):
 		line=fn.readline()
 		line=json.loads(line)
 		inMat[index,:]=line[0:-1]
-		#hsvh
-		# if line[1]=='Woman':
-		# 	line[1]=0
-		# else: line[1]=1
-		# inMat[index,:]=line[1:-1]
-		# inMat[index,:]=line[0:-1] HACK
 		if cls==1:
 			il.append(line[-1])
 		else:
@@ -70,11 +64,9 @@ def loadKFCV(K,mlMethod,cls=1,currClass=''):
 
 		#load training data
 		learnMat=zeros((testDataSize*(K-1),stats.numOfFeat))
-		# print learnMat.shape
 		ll=[]
 		index=0
 		sumOfTestData=0
-		# for l in range(i+1,K):
 		for l in range(K):
 			if l==i:
 				continue
@@ -108,7 +100,6 @@ def load1vsAll(mlMethod,K=10):
 	
 def load1FoldDataForTest():
 	testDataSize=stats.totalData/10+10
-	# for i in range(K):
 	numClass=len(stats.classLabel)
 	#load test data
 	testMat=zeros((testDataSize,stats.numOfFeat))
@@ -135,13 +126,5 @@ stats=loadStats()
 load1vsAll('adaBoost')
 
 # load1FoldDataForTest()
-
-# l=[1,2,3,4]
-# ml=ML.ML(mat(l),mat(l),l,l)
-# # ml.logResult(l)
-# # print stats.classLabel[0]
-# ml.classLabel=[klas[0] for klas in stats.classLabel]
-# ml.loadResult()
-# print ml.finalClassifier
 
 
